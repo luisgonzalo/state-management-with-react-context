@@ -642,5 +642,5 @@ const widgetReducer = (
 };
 ```
 
-With this definition, it is very difficult to make any mistakes when adding/removing actions, because TypeScript would catch any invalid action type. Also, if you forget to handle an action type (missing case in the switch), you would get a runtime error the first time you dispatch it.
+With this definition, it is very difficult to make any mistakes when adding/removing actions, because TypeScript would catch any invalid action type. Also, if you forget to handle an action type (missing `case` in the `switch`), you would get a runtime error the first time you dispatch it.
  
