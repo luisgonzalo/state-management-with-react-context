@@ -4,11 +4,16 @@ This is the code accompanying the article [React state management with Context a
 
 ## Available Scripts
 
-In the project directory, you can run:
+In the project directory, open a terminal and run:
 
-### `npm start`
+### `npm run start-server`
 
-Runs the app in the development mode.\
+Open another terminal and run:
+
+### `npm run start-client`
+
+These commands run the server on port 3001 and the client on port 3000.
+
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.\
