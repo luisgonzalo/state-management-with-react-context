@@ -5,7 +5,7 @@ import App from "./App";
 describe("App", () => {
   test("renders learn react link", () => {
     render(<App />);
-    const linkElement = screen.getByText(/log inq/i);
+    const linkElement = screen.getByText(/log in/i);
     expect(linkElement).toBeInTheDocument();
   });
 });

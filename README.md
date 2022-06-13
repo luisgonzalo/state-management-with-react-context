@@ -8,15 +8,9 @@ Download the source code to a local directory, open a terminal from there and ru
 
 ### `npm i`
 
-This will install all the dependencies. It may take a few minutes. Then, to start the backend server run:
+This will install all the dependencies. It may take a few minutes. Then, to start the app run:
 
-### `npm run start-server`
-
-Open another terminal and run:
-
-### `npm run start-client`
-
-These 2 commands run the server on port 3001 and the client on port 3000.
+### `npm start`
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 

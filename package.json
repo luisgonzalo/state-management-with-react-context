@@ -17,13 +17,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start-client": "react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build && (cd server && npm install)",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "start-server": "cd server && node server.js"
+    "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:3001",
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -46,5 +44,8 @@
     "@testing-library/dom": "^8.13.0",
     "@testing-library/user-event": "^14.2.0",
     "msw": "^0.42.1"
+  },
+  "msw": {
+    "workerDirectory": "public"
   }
 }
