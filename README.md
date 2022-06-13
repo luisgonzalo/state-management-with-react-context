@@ -4,7 +4,11 @@ This is the code accompanying the article [React state management with Context a
 
 ## Available Scripts
 
-In the project directory, open a terminal and run:
+Download the source code to a local directory, open a terminal from there and run:
+
+### `npm i`
+
+This will install all the dependencies. It may take a few minutes. Then, to start the backend server run:
 
 ### `npm run start-server`
 
@@ -12,12 +16,9 @@ Open another terminal and run:
 
 ### `npm run start-client`
 
-These commands run the server on port 3001 and the client on port 3000.
+These 2 commands run the server on port 3001 and the client on port 3000.
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
 ### `npm test`
 
