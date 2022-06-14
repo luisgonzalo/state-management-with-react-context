@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCurrentUser } from "../app-state/UserContext";
 
 export const UserContextConsumer = () => {
   const { userProfile, logIn, logOut } = useCurrentUser();
   const [user, setUser] = useState<string>("");
   const [pwd, setPwd] = useState<string>("");
+  const [isLoggingInOut, setIsLoggingInOut] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsLoggingInOut(false);
+  }, [userProfile]);
 
   return (
     <div>
@@ -13,7 +18,15 @@ export const UserContextConsumer = () => {
           <span>
             {userProfile.firstName} {userProfile.lastName} ({userProfile.email})
           </span>
-          <button onClick={logOut}>Log out</button>
+          <button
+            disabled={isLoggingInOut}
+            onClick={() => {
+              setIsLoggingInOut(true);
+              logOut();
+            }}
+          >
+            Log out
+          </button>
         </>
       ) : (
         <>
@@ -29,8 +42,9 @@ export const UserContextConsumer = () => {
             placeholder="Password"
           />
           <button
-            disabled={user.length === 0 || pwd.length === 0}
+            disabled={user.length === 0 || pwd.length === 0 || isLoggingInOut}
             onClick={() => {
+              setIsLoggingInOut(true);
               logIn(user, pwd);
             }}
           >
