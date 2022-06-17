@@ -77,7 +77,7 @@ export const useWidgetState = () => {
   return context;
 };
 
-interface WidgetStateContext {
+export interface WidgetStateContext {
   state: WidgetState;
   reportConfig: models.IVisualEmbedConfiguration;
   setConfig: (config: WidgetConfig) => void;
@@ -88,7 +88,7 @@ interface WidgetStateContext {
   retry: () => void;
 }
 
-const defaultReportConfig: models.IVisualEmbedConfiguration = {
+export const defaultReportConfig: models.IVisualEmbedConfiguration = {
   type: "report",
   embedUrl: undefined,
   tokenType: models.TokenType.Embed,
@@ -114,7 +114,7 @@ const defaultReportConfig: models.IVisualEmbedConfiguration = {
   filters: [],
 };
 
-export const WidgetContext = React.createContext<WidgetStateContext>({
+export const defaultWidgetContext: WidgetStateContext = {
   state: "idle",
   reportConfig: defaultReportConfig,
   setConfig: () => {},
@@ -123,7 +123,10 @@ export const WidgetContext = React.createContext<WidgetStateContext>({
   reportRendered: () => {},
   applyFilters: () => {},
   retry: () => {},
-});
+};
+
+export const WidgetContext =
+  React.createContext<WidgetStateContext>(defaultWidgetContext);
 
 export const WidgetStateProvider = (props: any) => {
   const [state, dispatch] = React.useReducer(widgetReducer, "idle");

@@ -17,6 +17,7 @@ import {
   UserContext,
 } from "./UserContext";
 import { UserContextConsumer } from "../components/UserContextConsumer";
+import { UserEvent } from "@testing-library/user-event/dist/types/setup";
 
 const server = setupServer(
   rest.post("/login", (req, res, ctx) => {
@@ -83,81 +84,85 @@ describe("UserContextConsumer", () => {
     expect(screen.getByRole("button")).toHaveTextContent("Log out");
   });
 
-  test(`doesn't allow login if username is empty`, async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
+  describe("CurrentUserProvider", () => {
+    let user: UserEvent;
 
-    const user = userEvent.setup();
-    // type something in the password input box...
-    await user.type(screen.getByPlaceholderText(/password/i), "pwd");
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
+    beforeEach(() => {
+      user = userEvent.setup();
+    });
 
-    expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
-    expect(screen.getByText(/^Log in/)).toBeInTheDocument();
-  });
+    test(`doesn't allow login if username is empty`, async () => {
+      render(
+        <CurrentUserProvider>
+          <UserContextConsumer />
+        </CurrentUserProvider>
+      );
 
-  test(`doesn't allow login if password is empty`, async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
+      // type something in the password input box...
+      await user.type(screen.getByPlaceholderText(/password/i), "pwd");
+      // ...and click the login button
+      fireEvent.click(screen.getByText(/^Log in/));
 
-    const user = userEvent.setup();
-    // type something in the username input box...
-    await user.type(screen.getByPlaceholderText(/username/i), "username");
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
+      expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+      expect(screen.getByText(/^Log in/)).toBeInTheDocument();
+    });
 
-    expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
-    expect(screen.getByText(/^Log in/)).toBeInTheDocument();
-  });
+    test(`doesn't allow login if password is empty`, async () => {
+      render(
+        <CurrentUserProvider>
+          <UserContextConsumer />
+        </CurrentUserProvider>
+      );
 
-  test("allows login if username and password are not empty", async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
+      // type something in the username input box...
+      await user.type(screen.getByPlaceholderText(/username/i), "username");
+      // ...and click the login button
+      fireEvent.click(screen.getByText(/^Log in/));
 
-    const user = userEvent.setup();
-    // type something in both input boxes...
-    await user.type(screen.getByPlaceholderText(/username/i), "jdoe");
-    await user.type(screen.getByPlaceholderText(/password/i), "pwd");
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
+      expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+      expect(screen.getByText(/^Log in/)).toBeInTheDocument();
+    });
 
-    await screen.findByText(/^Log out/);
+    test("allows login if username and password are not empty", async () => {
+      render(
+        <CurrentUserProvider>
+          <UserContextConsumer />
+        </CurrentUserProvider>
+      );
 
-    expect(
-      screen.getByText(`John Doe (john.doe@gmail.com)`)
-    ).toBeInTheDocument();
-  });
+      // type something in both input boxes...
+      await user.type(screen.getByPlaceholderText(/username/i), "jdoe");
+      await user.type(screen.getByPlaceholderText(/password/i), "pwd");
+      // ...and click the login button
+      fireEvent.click(screen.getByText(/^Log in/));
 
-  test("allows logout after a successful login", async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
+      await screen.findByText(/^Log out/);
 
-    const user = userEvent.setup();
-    // type something in both input boxes...
-    await user.type(screen.getByPlaceholderText(/username/i), "jdoe");
-    await user.type(screen.getByPlaceholderText(/password/i), "pwd");
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
+      expect(
+        screen.getByText(`John Doe (john.doe@gmail.com)`)
+      ).toBeInTheDocument();
+    });
 
-    // then click the logout button...
-    const logoutButton = await screen.findByText(/^Log out/);
-    fireEvent.click(logoutButton);
+    test("allows logout after a successful login", async () => {
+      render(
+        <CurrentUserProvider>
+          <UserContextConsumer />
+        </CurrentUserProvider>
+      );
 
-    // ...and wait for the login button to be shown and logout to be hidden
-    await screen.findByText(/^Log in/);
-    expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+      // type something in both input boxes...
+      await user.type(screen.getByPlaceholderText(/username/i), "jdoe");
+      await user.type(screen.getByPlaceholderText(/password/i), "pwd");
+      // ...and click the login button
+      fireEvent.click(screen.getByText(/^Log in/));
+
+      // then click the logout button...
+      const logoutButton = await screen.findByText(/^Log out/);
+      fireEvent.click(logoutButton);
+
+      // ...and wait for the login button to be shown and logout to be hidden
+      await screen.findByText(/^Log in/);
+      expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+    });
   });
 });
