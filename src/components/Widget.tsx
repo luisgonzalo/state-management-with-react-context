@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { PowerBIEmbed } from "powerbi-client-react";
 import { Report, Embed } from "powerbi-client";
 import { useWidgetState } from "../app-state/WidgetContext";
+import { Button, Group, Text } from "@mantine/core";
 import "./Widget.css";
 
 // API end-point url to get embed config for a sample report
@@ -79,18 +80,17 @@ export const Widget = () => {
           setReport(embedObject as Report)
         }
       />
-      <div className="hr"></div>
 
-      <div className="displayMessage">Report state: {state}</div>
+      <Text>Report state: {state}</Text>
 
-      <div className="controls">
-        <button onClick={embedReport} disabled={state !== "idle"}>
+      <Group position="center">
+        <Button onClick={embedReport} disabled={state !== "idle"}>
           Embed Report
-        </button>
-        <button onClick={retry} disabled={state !== "failed"}>
+        </Button>
+        <Button onClick={retry} disabled={state !== "failed"}>
           Retry
-        </button>
-      </div>
+        </Button>
+      </Group>
     </div>
   );
 };

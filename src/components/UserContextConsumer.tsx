@@ -1,3 +1,4 @@
+import { Box, Button, Group, Text, TextInput } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useCurrentUser } from "../app-state/UserContext";
 
@@ -12,13 +13,13 @@ export const UserContextConsumer = () => {
   }, [userProfile]);
 
   return (
-    <div>
+    <Box sx={{ textAlign: "center" }}>
       {userProfile ? (
-        <>
-          <span>
+        <Group position="center">
+          <Text>
             {userProfile.firstName} {userProfile.lastName} ({userProfile.email})
-          </span>
-          <button
+          </Text>
+          <Button
             disabled={isLoggingInOut}
             onClick={() => {
               setIsLoggingInOut(true);
@@ -26,22 +27,22 @@ export const UserContextConsumer = () => {
             }}
           >
             Log out
-          </button>
-        </>
+          </Button>
+        </Group>
       ) : (
-        <>
-          <input
+        <Group position="center">
+          <TextInput
             value={user}
             onChange={(e) => setUser(e.target.value)}
             placeholder="Username"
           />
-          <input
+          <TextInput
             type="password"
             value={pwd}
             onChange={(e) => setPwd(e.target.value)}
             placeholder="Password"
           />
-          <button
+          <Button
             disabled={user.length === 0 || pwd.length === 0 || isLoggingInOut}
             onClick={() => {
               setIsLoggingInOut(true);
@@ -49,9 +50,9 @@ export const UserContextConsumer = () => {
             }}
           >
             Log in
-          </button>
-        </>
+          </Button>
+        </Group>
       )}
-    </div>
+    </Box>
   );
 };
