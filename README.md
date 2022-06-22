@@ -4,7 +4,7 @@ This is the code accompanying the article [React state management with Context a
 
 ## Available Scripts
 
-Download the source code to a local directory, open a terminal from there and run:
+Clone or download the source code to a local directory, open a terminal from there and run:
 
 ### `npm i`
 

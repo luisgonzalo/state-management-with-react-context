@@ -8,7 +8,11 @@ import "@testing-library/jest-dom";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 
-import { defaultWidgetContext, WidgetContext } from "./WidgetContext";
+import {
+  defaultWidgetContext,
+  WidgetContext,
+  WidgetStateProvider,
+} from "./WidgetContext";
 import { Widget, SAMPLE_REPORT_URL } from "../components/Widget";
 
 const server = setupServer(
@@ -30,7 +34,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe("WidgetContext", () => {
-  test("shows the Embed Report button enabled", () => {
+  test("shows idle state and Embed Report button enabled", () => {
     render(
       <WidgetContext.Provider value={defaultWidgetContext}>
         <Widget />
@@ -39,15 +43,16 @@ describe("WidgetContext", () => {
 
     const embedButton = screen.getByText(/^Embed Report/);
 
+    expect(screen.getByText(/idle/)).toBeInTheDocument();
     expect(embedButton).toBeInTheDocument();
     expect(embedButton).not.toBeDisabled();
   });
 
-  test("change to loading status when Embed button is clicked", async () => {
+  test("when Embed button is clicked, state changes to loading and button is disabled", async () => {
     render(
-      <WidgetContext.Provider value={defaultWidgetContext}>
+      <WidgetStateProvider>
         <Widget />
-      </WidgetContext.Provider>
+      </WidgetStateProvider>
     );
 
     const embedButton = screen.getByText(/^Embed Report/);
@@ -56,5 +61,6 @@ describe("WidgetContext", () => {
     await screen.findByText(/loading/);
 
     expect(screen.getByText(/loading/)).toBeInTheDocument();
+    expect(screen.getByText(/^Embed Report/)).toBeDisabled();
   });
 });

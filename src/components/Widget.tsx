@@ -61,6 +61,12 @@ export const Widget = () => {
       console.log(event);
       reportError();
     });
+
+    return () => {
+      report.off("loaded");
+      report.off("rendered");
+      report.off("error");
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report]);
 

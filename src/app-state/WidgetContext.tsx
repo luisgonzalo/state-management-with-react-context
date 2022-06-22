@@ -69,14 +69,6 @@ const widgetReducer = (
   }
 };
 
-export const useWidgetState = () => {
-  const context = React.useContext(WidgetContext);
-  if (!context) {
-    throw new Error(`useWidgetState must be used within a WidgetProvider`);
-  }
-  return context;
-};
-
 export interface WidgetStateContext {
   state: WidgetState;
   reportConfig: models.IVisualEmbedConfiguration;
@@ -128,6 +120,14 @@ export const defaultWidgetContext: WidgetStateContext = {
 export const WidgetContext =
   React.createContext<WidgetStateContext>(defaultWidgetContext);
 
+export const useWidgetState = () => {
+  const context = React.useContext(WidgetContext);
+  if (!context) {
+    throw new Error(`useWidgetState must be used within a WidgetProvider`);
+  }
+  return context;
+};
+
 export const WidgetStateProvider = (props: any) => {
   const [state, dispatch] = React.useReducer(widgetReducer, "idle");
   const [reportConfig, setReportConfig] =
@@ -135,6 +135,7 @@ export const WidgetStateProvider = (props: any) => {
 
   const setConfig = (config: WidgetConfig) => {
     dispatch({ type: "SET_CONFIG", payload: config });
+
     setReportConfig((reportConfig) => ({
       ...reportConfig,
       embedUrl: config.embedUrl,
