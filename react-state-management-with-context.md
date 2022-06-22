@@ -2,7 +2,7 @@
 
 Luis Cañas Iniesta
 
-*25th May 2022*
+_25th May 2022_
 
 ## Overview
 
@@ -11,7 +11,7 @@ Then jQuery came along and everything changed… “OMG this is the future!” �
 
 Then I started with Angular.js and, again, “YEAH! This is the game-changer! The future is now!!” 😍 Until I had to develop another complex app…😱
 
-Well, I am still in this loop, and I suspect it’s infinite. When I started with React in 2017, I had another 😍 feeling because it was a big improvement in my development experience compared to what I was using before. It was designed as a JavaScript library for building UIs, using a declarative style for component rendering based on state. It is great at handling local component state. It allows you to use plain JavaScript (or TypeScript) and import any JavaScript library. It doesn’t mandate a way to handle any of the different aspects of a web app, such as global state. This aspect, state management, is one of the hardest in frontend development. 
+Well, I am still in this loop, and I suspect it’s infinite. When I started with React in 2017, I had another 😍 feeling because it was a big improvement in my development experience compared to what I was using before. It was designed as a JavaScript library for building UIs, using a declarative style for component rendering based on state. It is great at handling local component state. It allows you to use plain JavaScript (or TypeScript) and import any JavaScript library. It doesn’t mandate a way to handle any of the different aspects of a web app, such as global state. This aspect, state management, is one of the hardest in frontend development.
 
 We have to manage the app state in the browser, using a stateless protocol such as HTTP. Part of this app state is pure UI state but the rest is usually just a cache of server state (which probably comes from a database). So, we have to somehow deal with another of the most difficult aspects of software development: cache invalidation.
 
@@ -24,6 +24,7 @@ In this article I want to explain how to handle state management in a simple way
 ## Goal
 
 My goal is to answer the following questions:
+
 1. What is React Context?
 2. When to use external state managers?
 3. How to manage global state with React Context?
@@ -36,7 +37,8 @@ My goal is to answer the following questions:
 Basically, it is an object you can interact with from any component inside the children tree of the Context Provider. So, it needs a provider with a default context's object, and all of the provider's children can use this object. As this context object allows us to handle state at the app level, we can say that React has a built-in mechanism for state management; there is no need to install external libraries.
 
 Good for:
-- Slow moving global data: theme, authenticated user, preferences, etc. 
+
+- Slow moving global data: theme, authenticated user, preferences, etc.
 - When the data changes, a lot of the UI elements need to update
 - Micro frontends: small footprint of data
 
@@ -45,11 +47,13 @@ Good for:
 Sometimes it is better to use one of the many state management libraries. As they are not part of React, we have to do some research. Then we should try and evaluate a few of them and finally choose one, on which we depend from that moment. Therefore, it is important that the chosen library has a wide community supporting and maintaining it.
 
 Good for:
-- Fast moving data. 
+
+- Fast moving data.
 - Bigger app, more complex state
 - Team work when standards are important
 
 ## How to manage global state with React Context
+
 We should divide the global state in smaller parts and use these parts as close as possible to the components using it. Divide the global state logically in sub-states, according to the features that depend on these sub-states. Then, place the context as close to the components using it as possible.
 
 Using TypeScript is also very helpful to define and maintain the state. When you refactor the state, for example renaming, changing a function signature, adding or removing elements, TypeScript will inform you immediately if you make any mistakes.
@@ -73,7 +77,7 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
-  settings: { [settingId: string]: string; };
+  settings: { [settingId: string]: string };
   termsAccepted: boolean;
 }
 ```
@@ -95,19 +99,21 @@ If, for example, we want to change one of the user settings, we call updateUserP
 Now let’s create the Context object using the interface above. We need to pass the initial value of this object, so we pass null as userProfile to indicate that the user is not logged in:
 
 _UserContext.tsx_
+
 ```typescript
 const CurrentUserContext = React.createContext<UserContext>({
   userProfile: null,
   logIn: () => {},
   logOut: () => {},
   updateUserProfile: () => {},
-  acceptTermsAndConditions: () => {}
+  acceptTermsAndConditions: () => {},
 });
 ```
 
 We are going to create a custom hook to facilitate the use of this context to the components. It will check that it is called from within the Context provider (it is a common mistake to use a Context from outside the corresponding provider):
 
 _UserContext.tsx_
+
 ```typescript
 export const useCurrentUser = () => {
   const context = React.useContext(CurrentUserContext);
@@ -119,6 +125,7 @@ export const useCurrentUser = () => {
 ```
 
 Then, let’s say we need a component to display the user email and a button to log out, if the user is logged in, or a link to the login page otherwise; we only have to import this `useCurrentUser` hook and destructure the user profile and the `logOut` function:
+
 ```typescript
 const ComponentUsingUserContext = () => {
   const { userProfile, logOut } = useCurrentUser();
@@ -135,30 +142,32 @@ const ComponentUsingUserContext = () => {
   );
 };
 ```
+
 Of course this component should be inside the Context provider, or an error will be thrown and the component won’t be rendered.
 
 Let’s see how to create a wrapper for the provider that should be placed as close to where it’s needed as possible:
 
 _UserContext.tsx_
+
 ```typescript
 export const CurrentUserProvider = (props: any) => {
   const [currentUserProfile, setCurrentUserProfile] =
     React.useState<UserProfile | null>(null);
- 
-    // TODO add the logic to handle API calls
- 
+
+  // TODO add the logic to handle API calls
+
   const updateUserProfile = (profile: UserProfile) => {
     setCurrentUserProfile({ ...profile });
     // call the API to store the changes...
   };
- 
+
   const memoValue = React.useMemo<UserContext>(
     () => ({
       userProfile: currentUserProfile,
       logIn,
       logOut,
       updateUserProfile,
-      acceptTermsAndConditions
+      acceptTermsAndConditions,
     }),
     [acceptTermsAndConditions, currentUserProfile, logIn, logOut]
   );
@@ -169,6 +178,7 @@ export const CurrentUserProvider = (props: any) => {
 As you can see we are memoizing the UserContext to avoid unnecessary renders at the provider level. We will add the “TODO” logic later.
 
 Now we are going to locate this provider as close as possible to where it is needed. Imagine we need it only for a user page. We can use this Context provider like this:
+
 ```typescript
 export const UserPage = () => {
   return (
@@ -184,87 +194,83 @@ export const UserPage = () => {
 ```
 
 Then, inside the components `UserContactInfo`, `UserSettings` and `UserAccount` we can use the context with `useCurrentUser` as explained below (`ComponentUsingUserContext`):
+
 ```typescript
-const { /* objects and functions you need */ } = useCurrentUser();
+const {
+  /* objects and functions you need */
+} = useCurrentUser();
 ```
 
 Finally let’s see how we can implement the remaining logic in the provider (the “TODO” part in `CurrentUserProvider`):
+
 ```typescript
-  // ...
-  const {
-    logIn,
-    userProfile,
-    isLoadingUserProfile,
-    errorLoadingUserProfile,
- 
-    logOut,
-    loggedOut,
-    isLoggingOut,
-    errorLoggingOut,
- 
-    acceptTermsAndConditions,
-    termsAccepted,
-    errorAcceptingTerms,
-    loadingTermsAccepted
-  } = useAnyUserAPI();
- 
-  // 1) this effect loads the response from a successful login api
-  //   call and sets the user profile
-  useEffect(() => {
-    if (
-      userProfile &&
-      errorLoadingUserProfile === undefined &&
-      !isLoadingUserProfile
-    ) {
-      setCurrentUserProfile(userProfile);
-    }
-  }, [
-    currentUserProfile,
-    errorLoadingUserProfile,
-    isLoadingUserProfile,
-    userProfile
-  ]);
- 
-  // 2) this effect sets the user profile to null when the api call
-  //    to logout is successful
-  useEffect(() => {
-    if (
-      loggedOut &&
-      errorLoggingOut === undefined &&
-      !isLoggingOut
-    ) {
-      setCurrentUserProfile(null);
-    }
-  }, [
-    loggedOut,
-    errorLoggingOut,
-    isLoggingOut
-  ]);
- 
-  // 3) this effect updates the user profile when the api call to
-  //   accept terms & conditions is successful
-  useEffect(() => {
-    if (
-      currentUserProfile &&
-      termsAccepted &&
-      errorAcceptingTerms === undefined &&
-      !loadingTermsAccepted
-    ) {
-      setCurrentUserProfile((profile) =>
-        profile
-          ? {
-              ...profile,
-              termsAccepted: true
-            }
-          : null
-      );
-    }
-  }, [
-    termsAccepted,
-    errorAcceptingTerms,
-    loadingTermsAccepted,
-    currentUserProfile
-  ]);
+// ...
+const {
+  logIn,
+  userProfile,
+  isLoadingUserProfile,
+  errorLoadingUserProfile,
+
+  logOut,
+  loggedOut,
+  isLoggingOut,
+  errorLoggingOut,
+
+  acceptTermsAndConditions,
+  termsAccepted,
+  errorAcceptingTerms,
+  loadingTermsAccepted,
+} = useAnyUserAPI();
+
+// 1) this effect loads the response from a successful login api
+//   call and sets the user profile
+useEffect(() => {
+  if (
+    userProfile &&
+    errorLoadingUserProfile === undefined &&
+    !isLoadingUserProfile
+  ) {
+    setCurrentUserProfile(userProfile);
+  }
+}, [
+  currentUserProfile,
+  errorLoadingUserProfile,
+  isLoadingUserProfile,
+  userProfile,
+]);
+
+// 2) this effect sets the user profile to null when the api call
+//    to logout is successful
+useEffect(() => {
+  if (loggedOut && errorLoggingOut === undefined && !isLoggingOut) {
+    setCurrentUserProfile(null);
+  }
+}, [loggedOut, errorLoggingOut, isLoggingOut]);
+
+// 3) this effect updates the user profile when the api call to
+//   accept terms & conditions is successful
+useEffect(() => {
+  if (
+    currentUserProfile &&
+    termsAccepted &&
+    errorAcceptingTerms === undefined &&
+    !loadingTermsAccepted
+  ) {
+    setCurrentUserProfile((profile) =>
+      profile
+        ? {
+            ...profile,
+            termsAccepted: true,
+          }
+        : null
+    );
+  }
+}, [
+  termsAccepted,
+  errorAcceptingTerms,
+  loadingTermsAccepted,
+  currentUserProfile,
+]);
 ```
 
 As you can see, we can use any API call mechanism (fetch, Axios…) by implementing the `useAnyUserAPI` custom hook. Then we have to process the responses in useEffects:
@@ -289,9 +295,9 @@ In order to test the Context we have just built, we can create a dummy component
 ```typescript
 const UserContextConsumer = () => {
   const { userProfile, logIn, logOut } = useCurrentUser();
-  const [user, setUser] = useState<string>('');
-  const [pwd, setPwd] = useState<string>('');
- 
+  const [user, setUser] = useState<string>("");
+  const [pwd, setPwd] = useState<string>("");
+
   return (
     <div>
       {userProfile ? (
@@ -332,42 +338,43 @@ const UserContextConsumer = () => {
 We can test it using `react-testing-library`. To mock the API calls, we can use `Mock Service Worker`. Finally, to emulate the user typing into the input boxes, we can use `@testing-library/user-event`.
 This is how to mock the server calls, assuming the endpoints are:
 
-- POST /login 
-- POST /logout 
-- POST /accept 
+- POST /login
+- POST /logout
+- POST /accept
+
 ```typescript
 // import API mocking utilities from Mock Service Worker
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
- 
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+
 // import react-testing methods
-import { render, fireEvent, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
- 
+import { render, fireEvent, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
 // add custom jest matcher from jest-dom
-import '@testing-library/jest-dom';
- 
+import "@testing-library/jest-dom";
+
 const server = setupServer(
-  rest.post('/login', (req, res, ctx) => {
+  rest.post("/login", (req, res, ctx) => {
     return res(
       ctx.json<UserProfile>({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@gmail.com',
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@gmail.com",
         settings: {},
         termsAccepted: false,
-        username: 'johndoe'
+        username: "johndoe",
       })
     );
   }),
-  rest.post('/logout', (req, res, ctx) => {
+  rest.post("/logout", (req, res, ctx) => {
     return res(ctx.json<boolean>(true));
   }),
-  rest.post('/accept', (req, res, ctx) => {
+  rest.post("/accept", (req, res, ctx) => {
     return res(ctx.json<boolean>(true));
   })
 );
- 
+
 beforeAll(() => {
   server.listen();
   userEvent.setup();
@@ -379,17 +386,19 @@ afterAll(() => server.close());
 Ok, now we have a mocked server setup and listening before the tests run. This server responds to the “/login” endpoint with a dummy user profile, to the “/logout” endpoint with true and to the “/accept” endpoint with true as well. The login endpoint receives the username & password in the request body, but we just ignore them and always return the same dummy profile because we are not testing the authentication system. The goal is to test our Context.
 
 Now let’s create a default Context value with empty functions and no user profile:
+
 ```typescript
 const defaultContext: UserContext = {
   userProfile: null,
   logIn: () => {},
   logOut: () => {},
   acceptTermsAndConditions: () => {},
-  updateUserProfile: () => {}
+  updateUserProfile: () => {},
 };
 ```
 
 This is how a basic test could check that, given this default context, the login button is displayed:
+
 ```typescript
 describe('UserContextConsumer', () => {
   test('shows the login link when profile is missing', () => {
@@ -406,110 +415,111 @@ describe('UserContextConsumer', () => {
 As you can see, this first test is pretty straightforward: it renders our `UserContextConsumer` within the provider, and checks that an element with text ‘Log in’ can be found in the rendered UI.
 
 Now let’s pass a context value with a valid user profile, and check that ‘Log in’ is not rendered and the user’s full name and email, and a button with text ‘Log out’ are rendered:
+
 ```typescript
-  test('shows the full name, email and log out button when profile is not missing', () => {
-    const userContext: UserContext = {
-      ...defaultContext,
-      userProfile: {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'j.doe@domain.com',
-        settings: { theme: 'dark' },
-        termsAccepted: false,
-        username: 'jdoe'
-      }
-    };
-    render(
-      <CurrentUserContext.Provider value={userContext}>
-        <UserContextConsumer />
-      </CurrentUserContext.Provider>
-    );
-    expect(screen.queryByText(/^Log in/)).not.toBeInTheDocument();
-    expect(screen.getByText(`John Doe (j.doe@domain.com)`)).toBeInTheDocument();
-    expect(screen.getByRole('button')).toHaveTextContent('Log out');
-  });
+test("shows the full name, email and log out button when profile is not missing", () => {
+  const userContext: UserContext = {
+    ...defaultContext,
+    userProfile: {
+      firstName: "John",
+      lastName: "Doe",
+      email: "j.doe@domain.com",
+      settings: { theme: "dark" },
+      termsAccepted: false,
+      username: "jdoe",
+    },
+  };
+  render(
+    <CurrentUserContext.Provider value={userContext}>
+      <UserContextConsumer />
+    </CurrentUserContext.Provider>
+  );
+  expect(screen.queryByText(/^Log in/)).not.toBeInTheDocument();
+  expect(screen.getByText(`John Doe (j.doe@domain.com)`)).toBeInTheDocument();
+  expect(screen.getByRole("button")).toHaveTextContent("Log out");
+});
 ```
 
 Note that we have not used the mocked server yet, as we are not doing any API calls (the functions in this default context do nothing).
 
 Let’s see how to test that login is not possible if either username or password or both are empty. We can type something in the username or password input boxes, but not in both, click on the ‘Log in’ button, and check that the ‘Log out’ button is not rendered, i.e. the user is not logged in:
+
 ```typescript
-  test(`doesn't allow login if username is empty`, async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
-    
-    // type something in the password input box...
-    await userEvent.type(screen.getByPlaceholderText(/password/i), 'pwd');
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
- 
-    expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
-    expect(screen.getByText(/^Log in/)).toBeInTheDocument();
-  });
- 
-  test(`doesn't allow login if password is empty`, async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
- 
-    // type something in the username input box...
-    await userEvent.type(screen.getByPlaceholderText(/username/i), 'jdoe');
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
- 
-    expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
-    expect(screen.getByText(/^Log in/)).toBeInTheDocument();
-  });
+test(`doesn't allow login if username is empty`, async () => {
+  render(
+    <CurrentUserProvider>
+      <UserContextConsumer />
+    </CurrentUserProvider>
+  );
+
+  // type something in the password input box...
+  await userEvent.type(screen.getByPlaceholderText(/password/i), "pwd");
+  // ...and click the login button
+  fireEvent.click(screen.getByText(/^Log in/));
+
+  expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+  expect(screen.getByText(/^Log in/)).toBeInTheDocument();
+});
+
+test(`doesn't allow login if password is empty`, async () => {
+  render(
+    <CurrentUserProvider>
+      <UserContextConsumer />
+    </CurrentUserProvider>
+  );
+
+  // type something in the username input box...
+  await userEvent.type(screen.getByPlaceholderText(/username/i), "jdoe");
+  // ...and click the login button
+  fireEvent.click(screen.getByText(/^Log in/));
+
+  expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+  expect(screen.getByText(/^Log in/)).toBeInTheDocument();
+});
 ```
 
 Two final tests to check that login is possible when username and password are not empty, and that logging out is possible after a successful login:
+
 ```typescript
-  test('allows login if username and password are not empty', async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
- 
-    // type something in both input boxes...
-    await userEvent.type(screen.getByPlaceholderText(/username/i), 'jdoe');
-    await userEvent.type(screen.getByPlaceholderText(/password/i), 'pwd');
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
- 
-    await screen.findByText(/^Log out/);
- 
-    expect(
-      screen.getByText(`John Doe (john.doe@gmail.com)`)
-    ).toBeInTheDocument();
-  });
- 
-  test('allows logout after a successful login', async () => {
-    render(
-      <CurrentUserProvider>
-        <UserContextConsumer />
-      </CurrentUserProvider>
-    );
- 
-    // type something in both input boxes...
-    await userEvent.type(screen.getByPlaceholderText(/username/i), 'jdoe');
-    await userEvent.type(screen.getByPlaceholderText(/password/i), 'pwd');
-    // ...and click the login button
-    fireEvent.click(screen.getByText(/^Log in/));
- 
-    // then click the logout button...
-    const logOutButton = await screen.findByText(/^Log out/);
-    fireEvent.click(logOutButton);
- 
-    // ...and wait for the login button to be shown and logout to be hidden
-    await screen.findByText(/^Log in/);
-    expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
-  });
+test("allows login if username and password are not empty", async () => {
+  render(
+    <CurrentUserProvider>
+      <UserContextConsumer />
+    </CurrentUserProvider>
+  );
+
+  // type something in both input boxes...
+  await userEvent.type(screen.getByPlaceholderText(/username/i), "jdoe");
+  await userEvent.type(screen.getByPlaceholderText(/password/i), "pwd");
+  // ...and click the login button
+  fireEvent.click(screen.getByText(/^Log in/));
+
+  await screen.findByText(/^Log out/);
+
+  expect(screen.getByText(`John Doe (john.doe@gmail.com)`)).toBeInTheDocument();
+});
+
+test("allows logout after a successful login", async () => {
+  render(
+    <CurrentUserProvider>
+      <UserContextConsumer />
+    </CurrentUserProvider>
+  );
+
+  // type something in both input boxes...
+  await userEvent.type(screen.getByPlaceholderText(/username/i), "jdoe");
+  await userEvent.type(screen.getByPlaceholderText(/password/i), "pwd");
+  // ...and click the login button
+  fireEvent.click(screen.getByText(/^Log in/));
+
+  // then click the logout button...
+  const logOutButton = await screen.findByText(/^Log out/);
+  fireEvent.click(logOutButton);
+
+  // ...and wait for the login button to be shown and logout to be hidden
+  await screen.findByText(/^Log in/);
+  expect(screen.queryByText(/^Log out/)).not.toBeInTheDocument();
+});
 ```
 
 Now if everything is correct we should get the green checkmarks:
@@ -540,34 +550,38 @@ This is the FSM diagram that captures all the possible states and transitions (t
 
 The ON_REPORT_LOADED / RENDERED / ERROR transitions are events received from the Power BI widget. The rest of transitions are initiated by the user or the app:
 
-- SET_CONFIG: when the widget is in “Idle” state, the app automatically sets the configuration (report ID, token, etc.)
+- SET_CONFIG: when the widget is in “Idle” state, the app automatically sets the configuration (report ID, token, etc.) Also, the user can set the configuration i.e. by clicking a button.
 - APPLY_FILTERS: when the user makes a selection, given the widget is in state “Rendering” or “rendered”, the filters are applied to the widget.
 - RETRY: when the widget is in “Failed” state, given the user wants to retry, the state is changed back to “Idle”.
 
 Let’s see how to represent these states in our app with TypeScript:
+
 ```typescript
 export type WidgetState =
-  | 'idle'
-  | 'loading'
-  | 'rendering'
-  | 'rendered'
-  | 'failed';
+  | "idle"
+  | "loading"
+  | "rendering"
+  | "rendered"
+  | "failed";
 ```
 
-Yeah, they can be simple strings!
+Yeah, they can be simple strings.
+
 But before defining the FSM transitions, let’s see what is a reducer and an action:
+
 - A reducer is simply a function that takes an state and an action as input, and returns a new state, i.e. it “reduces” the input from state and action to state.
 - An action is defined by a type and an optional payload. We can use an action to start a transition.
 
 These are the actions’ types:
+
 ```typescript
 type WidgetActionType =
-  | 'SET_CONFIG'
-  | 'ON_REPORT_LOADED'
-  | 'ON_REPORT_RENDERED'
-  | 'APPLY_FILTERS'
-  | 'ON_REPORT_ERROR'
-  | 'RETRY';
+  | "SET_CONFIG"
+  | "ON_REPORT_LOADED"
+  | "ON_REPORT_RENDERED"
+  | "APPLY_FILTERS"
+  | "ON_REPORT_ERROR"
+  | "RETRY";
 ```
 
 Again, simple strings. The payload depends on the action type:
@@ -578,64 +592,62 @@ Again, simple strings. The payload depends on the action type:
 - ON_REPORT_LOADED, ON_REPORT_RENDERED and RETRY: no payload
 
 ```typescript
-type SetConfigPayload = {
-  reportId: string;
+type WidgetConfig = {
+  reportId?: string;
   token: string;
-  tokenExpiration: Date;
+  embedUrl: string;
 };
- 
-type ApplyFiltersPayload = {
-  nodeId: number;
-  planId: number;
-  asOfDate: Date;
-};
- 
-type ReportErrorPayload = {
+
+type WidgetFilters = models.IFilter[];
+
+type WidgetReportError = {
   error: Error;
 };
 ```
 
 Now we can define an action like this:
+
 ```typescript
 type WidgetAction = {
   type: WidgetActionType;
-  payload?: SetConfigPayload | ApplyFiltersPayload | ReportErrorPayload;
-}
+  payload?: WidgetConfig | WidgetFilters | WidgetReportError;
+};
 ```
 
 Observe that the payload is optional (it might be undefined). Now we can create our reducer:
+
 ```typescript
 const widgetReducer = (
   state: WidgetState,
   action: WidgetAction
 ): WidgetState => {
   switch (action.type) {
-    case 'SET_CONFIG':
-      if (state !== 'idle') {
+    case "SET_CONFIG":
+      if (state !== "idle") {
         console.log(`Cannot start loading if not in idle state`);
         return state;
       }
-      return 'loading';
-    case 'ON_REPORT_LOADED':
-      return 'rendering';
-    case 'ON_REPORT_ERROR':
-      return 'failed';
-    case 'ON_REPORT_RENDERED':
-      return 'rendered';
-    case 'APPLY_FILTERS':
-      if (state !== 'rendering' && state !== 'rendered') {
+      return "loading";
+    case "ON_REPORT_LOADED":
+      return "rendering";
+    case "ON_REPORT_ERROR":
+      return "failed";
+    case "ON_REPORT_RENDERED":
+      return "rendered";
+    case "APPLY_FILTERS":
+      if (state !== "rendering" && state !== "rendered") {
         console.log(
-          'Cannot apply filters if not in rendering or rendered state'
+          "Cannot apply filters if not in rendering or rendered state"
         );
         return state;
       }
-      return 'rendering';
-    case 'RETRY':
-      if (state !== 'failed') {
+      return "rendering";
+    case "RETRY":
+      if (state !== "failed") {
         console.log(`Cannot retry if not in failed state`);
         return state;
       }
-      return 'idle';
+      return "idle";
     default:
       throw new Error(`Unhandled action type: ${action.type}`);
   }
@@ -643,4 +655,302 @@ const widgetReducer = (
 ```
 
 With this definition, it is very difficult to make any mistakes when adding/removing actions, because TypeScript would catch any invalid action type. Also, if you forget to handle an action type (missing `case` in the `switch`), you would get a runtime error the first time you dispatch it.
- 
+
+Now we can define the Context, which consists of the FSM state (“idle”, “loading”, etc.), the report configuration (we need it for the embedded Power BI report) and the functions to start the transitions:
+
+```typescript
+export interface WidgetStateContext {
+  state: WidgetState;
+  reportConfig: models.IVisualEmbedConfiguration;
+  setConfig: (config: WidgetConfig) => void;
+  reportLoaded: () => void;
+  reportError: () => void;
+  reportRendered: () => void;
+  applyFilters: (filters: WidgetFilters) => void;
+  retry: () => void;
+}
+```
+
+An example of default Power BI configuration for embedded reports is the following:
+
+```typescript
+export const defaultReportConfig: models.IVisualEmbedConfiguration = {
+  type: "report",
+  embedUrl: undefined,
+  tokenType: models.TokenType.Embed,
+  accessToken: undefined,
+  visualName: "",
+  settings: {
+    panes: {
+      filters: {
+        expanded: false,
+        visible: true,
+      },
+      pageNavigation: {
+        visible: false,
+      },
+    },
+    layoutType: models.LayoutType.Custom,
+    customLayout: {
+      displayOption: models.DisplayOption.FitToPage,
+      pagesLayout: {},
+    },
+    background: models.BackgroundType.Transparent,
+  },
+  filters: [],
+};
+```
+
+Then, we can define our Context with a default value:
+
+```typescript
+export const defaultWidgetContext: WidgetStateContext = {
+  state: "idle",
+  reportConfig: defaultReportConfig,
+  setConfig: () => {},
+  reportLoaded: () => {},
+  reportError: () => {},
+  reportRendered: () => {},
+  applyFilters: () => {},
+  retry: () => {},
+};
+
+export const WidgetContext =
+  React.createContext<WidgetStateContext>(defaultWidgetContext);
+```
+
+Then, the custom hook that allows us to use the Context from any component, checking that it is inside the correct provider:
+
+```typescript
+export const useWidgetState = () => {
+  const context = React.useContext(WidgetContext);
+  if (!context) {
+    throw new Error(`useWidgetState must be used within a WidgetProvider`);
+  }
+  return context;
+};
+```
+
+Finally, the provider containing the necessary logic and state:
+
+```typescript
+export const WidgetStateProvider = (props: any) => {
+  const [state, dispatch] = React.useReducer(widgetReducer, "idle");
+  const [reportConfig, setReportConfig] =
+    React.useState<models.IVisualEmbedConfiguration>(defaultReportConfig);
+
+  const setConfig = (config: WidgetConfig) => {
+    dispatch({ type: "SET_CONFIG", payload: config });
+    setReportConfig((reportConfig) => ({
+      ...reportConfig,
+      embedUrl: config.embedUrl,
+      id: config.reportId,
+      accessToken: config.token,
+    }));
+  };
+
+  const reportLoaded = () => {
+    dispatch({ type: "ON_REPORT_LOADED" });
+  };
+
+  const reportError = () => {
+    dispatch({ type: "ON_REPORT_ERROR" });
+  };
+
+  const reportRendered = () => {
+    dispatch({ type: "ON_REPORT_RENDERED" });
+  };
+
+  const applyFilters = (filters: WidgetFilters) => {
+    dispatch({ type: "APPLY_FILTERS", payload: filters });
+  };
+
+  const retry = () => {
+    dispatch({ type: "RETRY" });
+  };
+
+  const memoValue = React.useMemo<WidgetStateContext>(
+    () => ({
+      state,
+      reportConfig,
+      setConfig,
+      reportLoaded,
+      reportError,
+      reportRendered,
+      applyFilters,
+      retry,
+    }),
+    [reportConfig, state]
+  );
+  return <WidgetContext.Provider value={memoValue} {...props} />;
+};
+```
+
+As you can see, it uses the reducer defined above to store the widget state and start the transitions by dispatching the corresponding actions.
+
+Finally, let’s see how a component can use this context to display an embedded Power BI widget and change its state:
+
+```typescript
+import { useEffect, useState } from "react";
+import { PowerBIEmbed } from "powerbi-client-react";
+import { Report, Embed } from "powerbi-client";
+import { useWidgetState } from "../app-state/WidgetContext";
+import "./Widget.css";
+
+// API end-point url to get embed config for a sample report
+export const SAMPLE_REPORT_URL =
+  "https://playgroundbe-bck-1.azurewebsites.net/Reports/SampleReport";
+
+export const Widget = () => {
+  const {
+    state,
+    reportConfig,
+    setConfig,
+    reportError,
+    reportLoaded,
+    reportRendered,
+    retry,
+  } = useWidgetState();
+
+  // PowerBI Report object (to be received via callback)
+  const [report, setReport] = useState<Report>();
+
+  // Fetch sample report's config (eg. embedUrl and AccessToken) for embedding
+  const embedReport = async () => {
+    // Fetch sample report's embed config
+    const reportConfigResponse = await fetch(SAMPLE_REPORT_URL);
+
+    if (!reportConfigResponse.ok) {
+      console.error(
+        `Failed to fetch config for report. Status: ${reportConfigResponse.status} ${reportConfigResponse.statusText}`
+      );
+      return;
+    }
+
+    const reportConfig = await reportConfigResponse.json();
+
+    // Set the fetched embedUrl and embedToken in the report config
+    setConfig({
+      embedUrl: reportConfig.EmbedUrl,
+      token: reportConfig.EmbedToken.Token,
+    });
+  };
+
+  useEffect(() => {
+    if (!report) return;
+
+    report.on("loaded", function (event) {
+      report.off("loaded");
+      console.log(event);
+      reportLoaded();
+    });
+
+    report.on("rendered", function (event) {
+      console.log(event);
+      reportRendered();
+    });
+
+    report.on("error", function (event) {
+      console.log(event);
+      reportError();
+    });
+
+    return () => {
+      report.off("loaded");
+      report.off("rendered");
+      report.off("error");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report]);
+
+  return (
+    <div>
+      <PowerBIEmbed
+        embedConfig={reportConfig}
+        cssClassName={"report-style-class"}
+        getEmbeddedComponent={(embedObject: Embed) =>
+          setReport(embedObject as Report)
+        }
+      />
+      <div className="hr"></div>
+
+      <div className="displayMessage">Report state: {state}</div>
+
+      <div className="controls">
+        <button onClick={embedReport} disabled={state !== "idle"}>
+          Embed Report
+        </button>
+        <button onClick={retry} disabled={state !== "failed"}>
+          Retry
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+### Testing the FSM
+
+In order to test this Context, we can use the Widget component above. First, we have to setup a server mock, similar to the one we setup for UserContext, but with a single endpoint:
+
+```typescript
+const server = setupServer(
+  rest.get(SAMPLE_REPORT_URL, (req, res, ctx) => {
+    return res(
+      ctx.json({
+        ok: true,
+        EmbedUrl: "",
+        EmbedToken: {
+          Token: "",
+        },
+      })
+    );
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+Once the server is mocked, we can test that default state is ‘Idle’, ‘Embed Report’ button is on the page and it is not disabled:
+
+```typescript
+test("shows idle state and Embed Report button enabled", () => {
+  render(
+    <WidgetContext.Provider value={defaultWidgetContext}>
+      <Widget />
+    </WidgetContext.Provider>
+  );
+
+  const embedButton = screen.getByText(/^Embed Report/);
+
+  expect(screen.getByText(/idle/)).toBeInTheDocument();
+  expect(embedButton).toBeInTheDocument();
+  expect(embedButton).not.toBeDisabled();
+});
+```
+
+Also we can test that, when the button is clicked, the state changes to ‘loading’ and the button is disabled:
+
+```typescript
+test("when Embed button is clicked, state changes to loading and button is disabled", async () => {
+  render(
+    <WidgetStateProvider>
+      <Widget />
+    </WidgetStateProvider>
+  );
+
+  const embedButton = screen.getByText(/^Embed Report/);
+  fireEvent.click(embedButton);
+
+  await screen.findByText(/loading/);
+
+  expect(screen.getByText(/loading/)).toBeInTheDocument();
+  expect(screen.getByText(/^Embed Report/)).toBeDisabled();
+});
+```
+
+Hope this helps you to get an idea about how to implement a FSM using a reducer and a Context!
+
+_All the source code in this article is available at [https://github.com/luisgonzalo/state-management-with-react-context](https://github.com/luisgonzalo/state-management-with-react-context)._

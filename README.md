@@ -1,6 +1,6 @@
 # State Management with React Context
 
-This is the code accompanying the article [React state management with Context and Reducers](react-state-management-with-context.md)
+This is the code accompanying the article [React state management with Context and Reducers](https://docs.google.com/document/d/1v8CxVAyZE0Jxi60dOKJcPWg3Jp1qfQMG32V_76_Gr9w/edit?usp=sharing)
 
 ## Available Scripts
 
